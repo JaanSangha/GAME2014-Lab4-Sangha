@@ -171,6 +171,8 @@ MonoBehaviour:
   bounds:
     min: -1.9
     max: 1.9
+  frameDelay: 5
+  bulletSpawn: {fileID: 9085714630421897881}
 --- !u!1 &4312804878573702781
 GameObject:
   m_ObjectHideFlags: 0

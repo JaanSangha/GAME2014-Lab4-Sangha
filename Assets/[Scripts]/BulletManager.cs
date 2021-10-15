@@ -5,15 +5,20 @@ using UnityEngine;
 [System.Serializable]
 public class BulletManager : MonoBehaviour
 {
-
     public Queue<GameObject> bulletPool;
-    public int bulletNumber;
-    public GameObject bulletPrefab;
+    public Queue<GameObject> playerBulletPool;
+    public int bulletNumber; 
+    public int playerBulletNumber;
+
+    private BulletFactory factory;
 
     // Start is called before the first frame update
     void Start()
     {
-        bulletPool = new Queue<GameObject>(); // create queue
+        bulletPool = new Queue<GameObject>(); // create enemy queue
+        playerBulletPool = new Queue<GameObject>(); // create player queue
+
+        factory = GetComponent<BulletFactory>(); //reference to bullet factory
 
        // BuildBulletPool();
     }
@@ -26,30 +31,72 @@ public class BulletManager : MonoBehaviour
         }
     }
 
-    public GameObject GetBullet(Vector2 position)
+    public GameObject GetBullet(Vector2 position, BulletType type = BulletType.ENEMY)
     {
-        if (bulletPool.Count < 1)
+        GameObject temp_bullet = null;
+
+        switch(type)
         {
-            AddBullet();
-            bulletNumber++;
+            case BulletType.ENEMY:
+                if (bulletPool.Count < 1)
+                {
+                    AddBullet();
+
+                }
+
+                temp_bullet = bulletPool.Dequeue();
+                temp_bullet.transform.position = position;
+                temp_bullet.SetActive(true);
+
+                break;
+            case BulletType.PLAYER:
+                if (playerBulletPool.Count < 1)
+                {
+                    AddBullet(BulletType.PLAYER);
+
+                }
+
+                temp_bullet = playerBulletPool.Dequeue();
+                temp_bullet.transform.position = position;
+                temp_bullet.SetActive(true);
+
+                break;
         }
-        var temp_bullet = bulletPool.Dequeue();
-        temp_bullet.transform.position = position;
-        temp_bullet.SetActive(true);
+
         return temp_bullet;
+
     }
 
-    public void ReturnBullet(GameObject returned_bullet)
+    public void ReturnBullet(GameObject returned_bullet, BulletType type = BulletType.ENEMY)
     {
         returned_bullet.SetActive(false);
-        bulletPool.Enqueue(returned_bullet);
+
+        switch (type)
+        {
+            case BulletType.ENEMY:
+                bulletPool.Enqueue(returned_bullet);
+                break;
+            case BulletType.PLAYER:
+                playerBulletPool.Enqueue(returned_bullet);
+                break;
+        }
     }
 
-    public void AddBullet()
+    public void AddBullet(BulletType type = BulletType.ENEMY)
     {
-        var temp_bullet = Instantiate(bulletPrefab);
-        temp_bullet.SetActive(false);
-        temp_bullet.transform.parent = transform;
-        bulletPool.Enqueue(temp_bullet);
+        var temp_bullet = factory.createBullet(type);
+
+        switch (type)
+        {
+            case BulletType.ENEMY:
+                bulletPool.Enqueue(temp_bullet);
+                bulletNumber++;
+                break;
+            case BulletType.PLAYER:
+                playerBulletPool.Enqueue(temp_bullet);
+                playerBulletNumber++;
+                break;
+        }
+      
     }
 }
